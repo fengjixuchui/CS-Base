@@ -4,7 +4,7 @@
 
 👉 **点击**：[图解计算机基础在线阅读](https://xiaolincoding.com/)
 
-本站所有文章都是我[公众号：小林coding](https://mp.weixin.qq.com/s/FYH1I8CRsuXDSybSGY_AFA)的原创文章，内容包含图解计算机网络、操作系统、计算机组成、数据库，共 1000 张图 + 50 万字，破除晦涩难懂的计算机基础知识，让天下没有难懂的八股文！🚀
+本站所有文章都是我[公众号：小林coding](https://mp.weixin.qq.com/s/FYH1I8CRsuXDSybSGY_AFA)的原创文章，内容包含图解计算机网络、操作系统、计算机组成、数据库，共 1000 张图 + 50 万字，破除晦涩难懂的计算机基础知识，让天下没有难懂的八股文（口嗨一下，大家不要当真哈哈）！🚀
 
 曾经我也苦恼于那些晦涩难弄的计算机基础知识，但在我啃了一本又一本的书，看了一个又一个的视频后，终于对这些“家伙”有了认识。我想着，这世界上肯定有一些朋友也跟我有一样的苦恼，为此下决心，用图解 + 通熟易懂的讲解来帮助大家理解，利用工作之余，坚持输出图解文章两年之久，这才有了今天的网站!
 
@@ -50,6 +50,7 @@
   - [没有 accpet，可以建立 TCP 连接吗？](https://xiaolincoding.com/network/3_tcp/tcp_no_accpet.html)
   - [用了 TCP 协议，数据一定不会丢吗？](https://xiaolincoding.com/network/3_tcp/tcp_drop.html)
   - [TCP 四次挥手，可以变成三次吗？](https://xiaolincoding.com/network/3_tcp/tcp_three_fin.html)
+  - [TCP 序列号和确认号是如何变化的？](https://xiaolincoding.com/network/3_tcp/tcp_seq_ack.html)
 - **IP 篇** :point_down:
   - [IP 基础知识全家桶](https://xiaolincoding.com/network/4_ip/ip_base.html) 	
   - [ping 的工作原理](https://xiaolincoding.com/network/4_ip/ping.html) 	
@@ -76,6 +77,7 @@
   - [内存满了，会发生什么？](https://xiaolincoding.com/os/3_memory/mem_reclaim.html)
   - [在 4GB 物理内存的机器上，申请 8G 内存会怎么样？](https://xiaolincoding.com/os/3_memory/alloc_mem.html)
   - [如何避免预读失效和缓存污染的问题？](https://xiaolincoding.com/os/3_memory/cache_lru.html)
+  - [深入理解 Linux 虚拟内存管理](https://xiaolincoding.com/os/3_memory/linux_mem.html)
 - **进程管理** :point_down:
   - [进程、线程基础知识](https://xiaolincoding.com/os/4_process/process_base.html) 
   - [进程间有哪些通信方式？](https://xiaolincoding.com/os/4_process/process_commu.html) 
@@ -108,6 +110,7 @@
   - [图解MySQL介绍](https://xiaolincoding.com/mysql/)
 - **基础篇**:point_down:：
   - [执行一条 select 语句，期间发生了什么？](https://xiaolincoding.com/mysql/base/how_select.html)
+  - [MySQL 一行记录是怎么存储的？](https://xiaolincoding.com/mysql/base/row_format.html)
 - **索引篇** :point_down:
   - [索引常见面试题](https://xiaolincoding.com/mysql/index/index_interview.html)
   - [从数据页的角度看 B+ 树](https://xiaolincoding.com/mysql/index/page.html)
