@@ -168,7 +168,7 @@ $ ethtool -k eth0 | grep scatter-gather
 scatter-gather: on
 ```
 
-于是，从 Linux 内核 `2.4` 版本开始起，对于支持网卡支持 SG-DMA 技术的情况下， `sendfile()` 系统调用的过程发生了点变化，具体过程如下：
+于是，从 Linux 内核 `2.4` 版本开始起，对于支持 SG-DMA 技术的网卡， `sendfile()` 系统调用的过程发生了点变化，具体过程如下：
 
 - 第一步，通过 DMA 将磁盘上的数据拷贝到内核缓冲区里；
 - 第二步，缓冲区描述符和数据长度传到 socket 缓冲区，这样网卡的 SG-DMA 控制器就可以直接将内核缓存中的数据拷贝到网卡的缓冲区里，此过程不需要将数据从操作系统内核缓冲区拷贝到 socket 缓冲区中，这样就减少了一次数据拷贝；
@@ -179,7 +179,7 @@ scatter-gather: on
 ![](https://cdn.jsdelivr.net/gh/xiaolincoder/ImageHost2/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%9B%B6%E6%8B%B7%E8%B4%9D/senfile-%E9%9B%B6%E6%8B%B7%E8%B4%9D.png)
 
 
-这就是所谓的**零拷贝（*Zero-copy*）技术，因为我们没有在内存层面去拷贝数据，也就是说全程没有通过 CPU 来搬运数据，所有的数据都是通过 DMA 来进行传输的。**。
+这就是所谓的**零拷贝（*Zero-copy*）技术，因为我们没有在内存层面去拷贝数据，也就是说全程没有通过 CPU 来搬运数据，所有的数据都是通过 DMA 来进行传输的。**
 
 零拷贝技术的文件传输方式相比传统文件传输的方式，减少了 2 次上下文切换和数据拷贝次数，**只需要 2 次上下文切换和数据拷贝次数，就可以完成文件的传输，而且 2 次的数据拷贝过程，都不需要通过 CPU，2 次都是由 DMA 来搬运。**
 
@@ -196,8 +196,8 @@ scatter-gather: on
 
 
 ```java
-@Overridepublic 
-long transferFrom(FileChannel fileChannel, long position, long count) throws IOException { 
+@Override
+public long transferFrom(FileChannel fileChannel, long position, long count) throws IOException { 
     return fileChannel.transferTo(position, count, socketChannel);
 }
 ```

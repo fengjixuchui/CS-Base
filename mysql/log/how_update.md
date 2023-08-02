@@ -91,7 +91,7 @@ MySQL 的数据都是存在磁盘中的，那么我们要更新一条记录的�
 
 ![Buffer Poo](https://cdn.xiaolincoding.com/gh/xiaolincoder/ImageHost4@main/mysql/innodb/%E7%BC%93%E5%86%B2%E6%B1%A0.drawio.png?image_process=watermark,text_5YWs5LyX5Y-377ya5bCP5p6XY29kaW5n,type_ZnpsdHpoaw,x_10,y_10,g_se,size_20,color_0000CD,t_70,fill_0)
 
-有了 Buffer Poo 后：
+有了 Buffer Pool 后：
 
 - 当读取数据时，如果数据存在于 Buffer Pool 中，客户端就会直接读取 Buffer Pool 中的数据，否则再去磁盘中读取。
 - 当修改数据时，如果数据存在于  Buffer Pool  中，那直接修改 Buffer Pool 中数据所在的页，然后将其页设置为脏页（该页的内存数据和磁盘上的数据已经不一致），为了减少磁盘I/O，不会立即将脏页写入磁盘，后续由后台线程选择一个合适的时机将脏页写入到磁盘。
@@ -239,7 +239,7 @@ InnoDB 的后台线程每隔 1 秒：
 
 - 在一些对数据安全性要求比较高的场景中，显然 `innodb_flush_log_at_trx_commit`  参数需要设置为 1。
 - 在一些可以容忍数据库崩溃时丢失 1s 数据的场景中，我们可以将该值设置为 0，这样可以明显地减少日志同步到磁盘的 I/O 操作。
-- 安全性和性能折中的方案就是参数 2，虽然参数 2 没有参数 0 的性能高，但是数据安全性方面比参数 0 强，因为参数 2 只要操作系统不宕机，即使数据库崩溃了，也不会丢失数据，同时性能方便比参数 1 高。
+- 安全性和性能折中的方案就是参数 2，虽然参数 2 没有参数 0 的性能高，但是数据安全性方面比参数 0 强，因为参数 2 只要操作系统不宕机，即使数据库崩溃了，也不会丢失数据，同时性能方面比参数 1 高。
 
 ### redo log 文件写满了怎么办？
 
@@ -257,19 +257,19 @@ InnoDB 的后台线程每隔 1 秒：
 
 我们知道 redo log 是为了防止 Buffer Pool 中的脏页丢失而设计的，那么如果随着系统运行，Buffer Pool 的脏页刷新到了磁盘中，那么 redo log 对应的记录也就没用了，这时候我们擦除这些旧记录，以腾出空间记录新的更新操作。
 
-redo log 是循环写的方式，相当于一个环形，InnoDB 用 write pos 表示 redo log 当前记录写到的位置，用 checkpoint 表示当前要擦除的位置，如下图：
+redo log 是循环写的方式，相当于一个环形，InnoDB 用 write pos 表示 redo log 当前记录写到的位置，用 check point 表示当前要擦除的位置，如下图：
 
 ![](https://cdn.xiaolincoding.com/gh/xiaolincoder/mysql/how_update/checkpoint.png)
 
 图中的：
 
-- write pos 和 checkpoint 的移动都是顺时针方向；
-- write pos ～ checkpoint 之间的部分（图中的红色部分），用来记录新的更新操作；
+- write pos 和 check point 的移动都是顺时针方向；
+- write pos ～ check point 之间的部分（图中的红色部分），用来记录新的更新操作；
 - check point ～ write pos 之间的部分（图中蓝色部分）：待落盘的脏数据页记录；
 
-如果 write pos  追上了  checkpoint，就意味着 **redo log 文件满了，这时 MySQL 不能再执行新的更新操作，也就是说 MySQL 会被阻塞**（*因此所以针对并发量大的系统，适当设置  redo log 的文件大小非常重要*），此时**会停下来将 Buffer Pool 中的脏页刷新到磁盘中，然后标记 redo log 哪些记录可以被擦除，接着对旧的 redo log 记录进行擦除，等擦除完旧记录腾出了空间，checkpoint 就会往后移动（图中顺时针）**，然后 MySQL 恢复正常运行，继续执行新的更新操作。
+如果 write pos  追上了  check point，就意味着 **redo log 文件满了，这时 MySQL 不能再执行新的更新操作，也就是说 MySQL 会被阻塞**（*因此所以针对并发量大的系统，适当设置  redo log 的文件大小非常重要*），此时**会停下来将 Buffer Pool 中的脏页刷新到磁盘中，然后标记 redo log 哪些记录可以被擦除，接着对旧的 redo log 记录进行擦除，等擦除完旧记录腾出了空间，check point 就会往后移动（图中顺时针）**，然后 MySQL 恢复正常运行，继续执行新的更新操作。
 
-所以，一次 checkpoint 的过程就是脏页刷新到磁盘中变成干净页，然后标记 redo log  哪些记录可以被覆盖的过程。
+所以，一次 check point 的过程就是脏页刷新到磁盘中变成干净页，然后标记 redo log  哪些记录可以被覆盖的过程。
 
 ## 为什么需要 binlog ？
 
@@ -298,7 +298,10 @@ binlog 文件是记录了所有数据库表结构变更和表数据修改的日�
 
 *2、文件格式不同：*
 
-- binlog 有 3 种格式类型，分别是 STATEMENT（默认格式）、ROW、 MIXED，区别如下：
+- binlog 有 3 种格式类型，分别是 STATEMENT、ROW、 MIXED，区别如下：
+
+  > 在MySQL 5.7.7之前，`binlog_format`的默认值是`STATEMENT`，而在5.7.7及之后的版本，默认值为`ROW`。
+
   - STATEMENT：每一条修改数据的 SQL 都会被记录到 binlog 中（相当于记录了逻辑操作，所以针对这种格式， binlog 可以称为逻辑日志），主从复制中 slave 端再根据 SQL 语句重现。但 STATEMENT 有动态函数的问题，比如你用了 uuid 或者 now 这些函数，你在主库上执行的结果并不是你在从库执行的结果，这种随时在变的函数会导致复制的数据不一致；
   - ROW：记录行数据最终被修改成什么样了（这种格式的日志，就不能称为逻辑日志了），不会出现 STATEMENT 下动态函数的问题。但 ROW 的缺点是每行数据的变化结果都会被记录，比如执行批量 update 语句，更新多少行数据就会产生多少条记录，使 binlog 文件过大，而在 STATEMENT 格式下只会记录一个 update 语句而已；
   - MIXED：包含了 STATEMENT 和 ROW 模式，它会根据不同的情况自动使用 ROW 模式和 STATEMENT 模式；
@@ -383,13 +386,13 @@ MySQL提供一个 sync_binlog 参数来控制数据库的 binlog 刷到磁盘上
 
 - sync_binlog = 0 的时候，表示每次提交事务都只 write，不 fsync，后续交由操作系统决定何时将数据持久化到磁盘；
 - sync_binlog = 1 的时候，表示每次提交事务都会 write，然后马上执行 fsync；
-- sync_binlog =N(N>1) 的时候，表示每次提交事务都 write，但累积 N 个事务后才 fsync。
+- sync_binlog = N(N>1) 的时候，表示每次提交事务都 write，但累积 N 个事务后才 fsync。
 
-在MySQL中系统默认的设置是 sync_binlog = 0，也就是不做任何强制性的磁盘刷新指令，这时候的性能是最好的，但是风险也是最大的。因为一旦主机发生异常重启，还没持久化到磁盘的数据就会丢失。
+在MySQL中系统默认的设置是 sync_binlog = 1，是最安全但是性能损耗最大的设置。因为当设置为 1 的时候，即使主机发生异常重启，最多丢失一个事务的 binlog，而已经持久化到磁盘的数据就不会有影响，不过就是对写入性能影响太大。
 
-而当 sync_binlog 设置为 1 的时候，是最安全但是性能损耗最大的设置。因为当设置为 1 的时候，即使主机发生异常重启，最多丢失一个事务的 binlog，而已经持久化到磁盘的数据就不会有影响，不过就是对写入性能影响太大。
+而当 sync_binlog 设置为 0 的时候，也就是不做任何强制性的磁盘刷新指令，这时候的性能是最好的，但是风险也是最大的。因为一旦主机发生异常重启，还没持久化到磁盘的数据就会丢失。
 
-如果能容少量事务的 binlog 日志丢失的风险，为了提高写入的性能，一般会 sync_binlog 设置为 100~1000 中的某个数值。
+如果能容忍少量事务的 binlog 日志存在丢失风险的情况下，同时为了提高写入的性能，一般可以将 sync_binlog 设置为 100~1000 中的某个数值。
 
 > 三个日志讲完了，至此我们可以先小结下，update 语句的执行过程。
 

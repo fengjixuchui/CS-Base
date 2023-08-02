@@ -118,11 +118,11 @@ B+Tree 存储千万级的数据只需要 3-4 层高度就可以满足，这意�
 select * from product where product_no = '0002';
 ```
 
-会先检二级索引中的 B+Tree 的索引值（商品编码，product_no），找到对应的叶子节点，然后获取主键值，然后再通过主键索引中的 B+Tree 树查询到对应的叶子节点，然后获取整行数据。**这个过程叫「回表」，也就是说要查两个 B+Tree 才能查到数据**。如下图：
+会先检查二级索引中的 B+Tree 的索引值（商品编码，product_no），找到对应的叶子节点，然后获取主键值，然后再通过主键索引中的 B+Tree 查询到对应的叶子节点，然后获取整行数据。**这个过程叫「回表」，也就是说要查两个 B+Tree 才能查到数据**。如下图：
 
 ![回表](https://cdn.xiaolincoding.com/gh/xiaolincoder/mysql/索引/回表.drawio.png)
 
-不过，当查询的数据是能在二级索引的 B+Tree 的叶子节点里查询到，这时就不用再查主键索引查，比如下面这条查询语句：
+不过，当查询的数据是能在二级索引的 B+Tree 的叶子节点里查询到，这时就不用再去主键索引中查寻了，比如下面这条查询语句：
 
 ```sql
 select id from product where product_no = '0002';

@@ -48,7 +48,7 @@ Redis 与 Memcached **区别**：
 
 ![](https://img-blog.csdnimg.cn/img_convert/37e4378d2edcb5e217b00e5f12973efd.png)
 
-如果 MySQL 中的对应数据改变的之后，同步改变 Redis 缓存中相应的数据即可，不过这里会有 Redis 和 MySQL 双写一致性的问题，后面我们会提到。
+如果 MySQL 中的对应数据改变了之后，同步改变 Redis 缓存中相应的数据即可，不过这里会有 Redis 和 MySQL 双写一致性的问题，后面我们会提到。
 
 ***2、 Redis 具备高并发***
 
@@ -877,7 +877,7 @@ Write Back（写回）策略在更新数据的时候，只更新缓存，同时�
 可以通过 redis-cli --bigkeys 命令查找大 key：
 
 ```shell
-redis-cli -h 127.0.0.1 -p6379 -a "password" -- bigkeys
+redis-cli -h 127.0.0.1 -p6379 -a "password" --bigkeys
 ```
 使用的时候注意事项：
 
